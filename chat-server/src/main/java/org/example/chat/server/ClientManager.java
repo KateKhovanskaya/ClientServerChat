@@ -82,16 +82,21 @@ public class ClientManager implements  Runnable{
                 }
             }
         }else{
+            boolean addressWasFind = false;
             for(ClientManager client:clients){
                 try{
                     if(client.name.equals(addressName) && message != null){
                         client.bufferedWriter.write(message);
                         client.bufferedWriter.newLine();
                         client.bufferedWriter.flush();
+                        addressWasFind = true;
                     }
                 }catch(IOException e){
                     closeEverything(socket, bufferedReader, bufferedWriter);
                 }
+            }
+            if(!addressWasFind){
+                broadcastMessage(name, "Server: указанный пользователь не найден!");
             }
         }
 
