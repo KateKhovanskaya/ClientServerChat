@@ -19,7 +19,7 @@ public class ClientManager implements  Runnable{
             name = bufferedReader.readLine();
             clients.add(this);
             System.out.println(name + " подключился к чату.");
-            broadcastMessage("Server: " + name + " подключился к чату.");
+            broadcastMessage("all", "Server: " + name + " подключился к чату.");
         }catch(IOException e){
             closeEverything(socket, bufferedReader, bufferedWriter);
         }
@@ -44,7 +44,7 @@ public class ClientManager implements  Runnable{
     private void removeClient(){
         clients.remove(this);
         System.out.println(name + " покинул чат.");
-        broadcastMessage("Server: " + name + " покинул чат.");
+        broadcastMessage("all", "Server: " + name + " покинул чат.");
     }
 
     @Override
@@ -58,7 +58,9 @@ public class ClientManager implements  Runnable{
                     closeEverything(socket, bufferedReader, bufferedWriter);
                     break;
                 }
-                broadcastMessage(messageFromClient);
+                String[][] messageData = getMessageData(messageFromClient);
+                String messageToSend = messageData[0][1] + ": " + messageData[2][1];
+                broadcastMessage(messageData[1][1], messageToSend);
             }catch(IOException e){
                 closeEverything(socket, bufferedReader, bufferedWriter);
                 break;
@@ -66,17 +68,40 @@ public class ClientManager implements  Runnable{
         }
     }
 
-    private void broadcastMessage(String message){
-       for(ClientManager client:clients){
-           try{
-               if(!client.name.equals(name) && message != null){
-                   client.bufferedWriter.write(message);
-                   client.bufferedWriter.newLine();
-                   client.bufferedWriter.flush();
-               }
-           }catch(IOException e){
-               closeEverything(socket, bufferedReader, bufferedWriter);
-           }
-       }
+    private void broadcastMessage(String addressName, String message){
+        if(addressName.equals("all")){
+            for(ClientManager client:clients){
+                try{
+                    if(!client.name.equals(name) && message != null){
+                        client.bufferedWriter.write(message);
+                        client.bufferedWriter.newLine();
+                        client.bufferedWriter.flush();
+                    }
+                }catch(IOException e){
+                    closeEverything(socket, bufferedReader, bufferedWriter);
+                }
+            }
+        }else{
+            for(ClientManager client:clients){
+                try{
+                    if(client.name.equals(addressName) && message != null){
+                        client.bufferedWriter.write(message);
+                        client.bufferedWriter.newLine();
+                        client.bufferedWriter.flush();
+                    }
+                }catch(IOException e){
+                    closeEverything(socket, bufferedReader, bufferedWriter);
+                }
+            }
+        }
+
+    }
+    private String[][] getMessageData(String messageFromClient){
+        String[] messageData = messageFromClient.split(";");
+        String[][] finalData = new String[messageData.length][2];
+        for (int i = 0; i <= 2; i++) {
+            finalData[i]= messageData[i].split(":");
+        }
+        return finalData;
     }
 }

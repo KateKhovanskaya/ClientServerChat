@@ -4,6 +4,8 @@ import java.io.*;
 import java.net.Socket;
 import java.util.Scanner;
 
+import static java.lang.Integer.parseInt;
+
 public class Client {
     private final Socket socket;
     private final String name;
@@ -23,14 +25,16 @@ public class Client {
     }
     public void sendMessage(){
         try{
+
             bufferedWriter.write(name);
             bufferedWriter.newLine();
             bufferedWriter.flush();
 
             Scanner scanner = new Scanner(System.in);
             while(socket.isConnected()){
-                String message = scanner.nextLine();
-                bufferedWriter.write(name + ": " + message);
+
+                String message = prepareMessageToSend(scanner);
+                bufferedWriter.write(message);
                 bufferedWriter.newLine();
                 bufferedWriter.flush();
             }
@@ -69,5 +73,27 @@ public class Client {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private String prepareMessageToSend(Scanner scanner){
+        System.out.println("введите 1 - если хотите отправить сообщение всем,\n 2 - отправить личное сообщение");
+        int messageType = parseInt(scanner.nextLine());
+        String addressName = "all";
+        if(messageType == 2) {
+            System.out.print("Введите имя получателя: ");
+            addressName = scanner.nextLine();
+        }
+        System.out.print("Введите сообщение: ");
+        String text = scanner.nextLine();
+        StringBuilder messageBuilding = new StringBuilder();
+        messageBuilding.append("sender:");
+        messageBuilding.append(name);
+        messageBuilding.append(";");
+        messageBuilding.append("address:");
+        messageBuilding.append(addressName);
+        messageBuilding.append(";");
+        messageBuilding.append("text:");
+        messageBuilding.append(text);
+        return messageBuilding.toString();
     }
 }
